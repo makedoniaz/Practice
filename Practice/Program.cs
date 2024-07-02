@@ -1,9 +1,18 @@
+using System.Data.SqlClient;
+using System.Runtime.InteropServices;
+using Dapper;
+using Practice.Repositories;
+using Practice.Repositories.Base;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
+
+builder.Services.AddScoped<IUserRepository, UserDapperRepository>();
 
 var app = builder.Build();
 
@@ -14,31 +23,29 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// var masterConnString = "Server=tcp:practicedevmssqldb.database.windows.net,1433;Initial Catalog=practicedevmssqldb;Persist Security Info=False;User ID=azureuser;Password=Stepit12345;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30";
+// var connection = new SqlConnection(masterConnString);
+
+// try {
+//     await connection.ExecuteAsync(
+//         sql: @"CREATE DATABASE IF NOT EXISTS Practice
+//                 USE Pracitce"
+//     );
+
+//     await connection.ExecuteAsync(
+//         sql: @"create table Users (
+//             Id int primary key identity(1, 1),
+//             [Login] nvarchar(100),
+//             [Password] nvarchar(100),
+//             [Email] nvarchar(100)
+//             )"
+//     );
+// }
+// catch(Exception) {
+//     Console.WriteLine("Db already exists!");
+// }
+
+app.MapControllers();
+
 app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
